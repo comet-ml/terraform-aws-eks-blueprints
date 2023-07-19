@@ -143,7 +143,7 @@ module "eks_blueprints_kubernetes_addons" {
   enable_aws_node_termination_handler = true
   enable_kubecost                     = true
 
-  enable_datadog_operator = true
+  enable_datadog_operator = false
 
   tags = local.tags
 }
@@ -211,39 +211,39 @@ resource "kubectl_manifest" "karpenter_provisioner" {
 # Datadog Operator
 #---------------------------------------------------------------
 
-resource "kubernetes_secret_v1" "datadog_api_key" {
-  metadata {
-    name      = "datadog-secret"
-    namespace = "datadog-operator"
-  }
+# resource "kubernetes_secret_v1" "datadog_api_key" {
+#   metadata {
+#     name      = "datadog-secret"
+#     namespace = "datadog-operator"
+#   }
+# 
+#   data = {
+#     # This will reveal a secret in the Terraform state
+#     api-key = var.datadog_api_key
+#   }
+# 
+#   # Ensure the operator is deployed first
+#   depends_on = [module.eks_blueprints_kubernetes_addons]
+# }
 
-  data = {
-    # This will reveal a secret in the Terraform state
-    api-key = var.datadog_api_key
-  }
-
-  # Ensure the operator is deployed first
-  depends_on = [module.eks_blueprints_kubernetes_addons]
-}
-
-resource "kubectl_manifest" "datadog_agent" {
-  yaml_body = <<-YAML
-    apiVersion: datadoghq.com/v1alpha1
-    kind: DatadogAgent
-    metadata:
-      name: datadog
-      namespace: datadog-operator
-    spec:
-      clusterName: ${module.eks_blueprints.eks_cluster_id}
-      credentials:
-        apiSecret:
-          secretName: ${kubernetes_secret_v1.datadog_api_key.metadata[0].name}
-          keyName: api-key
-      features:
-        kubeStateMetricsCore:
-          enabled: true
-  YAML
-}
+# resource "kubectl_manifest" "datadog_agent" {
+#   yaml_body = <<-YAML
+#     apiVersion: datadoghq.com/v1alpha1
+#     kind: DatadogAgent
+#     metadata:
+#       name: datadog
+#       namespace: datadog-operator
+#     spec:
+#       clusterName: ${module.eks_blueprints.eks_cluster_id}
+#       credentials:
+#         apiSecret:
+#           secretName: ${kubernetes_secret_v1.datadog_api_key.metadata[0].name}
+#           keyName: api-key
+#       features:
+#         kubeStateMetricsCore:
+#           enabled: true
+#   YAML
+# }
 
 #---------------------------------------------------------------
 # Supporting Resources
