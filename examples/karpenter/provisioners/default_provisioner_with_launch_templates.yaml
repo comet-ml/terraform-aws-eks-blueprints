@@ -26,8 +26,4 @@ spec:
   labels:
     type: karpenter
     provisioner: default-lt
-  taints:
-    - key: default-lt
-      value: 'true'
-      effect: NoSchedule
   ttlSecondsAfterEmpty: 120
