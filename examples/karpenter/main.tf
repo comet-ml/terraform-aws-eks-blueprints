@@ -2,6 +2,8 @@ provider "aws" {
   region = local.region
 }
 
+data "aws_ecrpublic_authorization_token" "token" {}
+
 provider "kubernetes" {
   host                   = module.eks_blueprints.eks_cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks_blueprints.eks_cluster_certificate_authority_data)
@@ -9,6 +11,11 @@ provider "kubernetes" {
 }
 
 provider "helm" {
+  registry {
+    url      = "oci://public.ecr.aws"
+    username = data.aws_ecrpublic_authorization_token.token.user_name
+    password = data.aws_ecrpublic_authorization_token.token.password
+  }
   kubernetes {
     host                   = module.eks_blueprints.eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks_blueprints.eks_cluster_certificate_authority_data)
@@ -32,7 +39,7 @@ data "aws_availability_zones" "available" {}
 
 locals {
   name   = basename(path.cwd)
-  region = "us-west-2"
+  region = "us-east-1"
 
   node_group_name = "managed-ondemand"
 
@@ -53,7 +60,7 @@ module "eks_blueprints" {
   source = "../.."
 
   cluster_name    = local.name
-  cluster_version = "1.24"
+  cluster_version = "1.25"
 
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
@@ -140,8 +147,8 @@ module "eks_blueprints_kubernetes_addons" {
   enable_amazon_eks_aws_ebs_csi_driver = true
 
   enable_karpenter                    = true
-  enable_aws_node_termination_handler = true
-  enable_kubecost                     = true
+  enable_aws_node_termination_handler = false
+  enable_kubecost                     = false
 
   enable_datadog_operator = false
 
@@ -191,7 +198,7 @@ module "karpenter_launch_templates" {
 
 # Deploying default provisioner and default-lt (using launch template) for Karpenter autoscaler
 data "kubectl_path_documents" "karpenter_provisioners" {
-  pattern = "${path.module}/provisioners/default_provisioner*.yaml" # without launch template
+  pattern = "${path.module}/provisioners/*_provisioner*.yaml" # without launch template
   vars = {
     azs                     = join(",", local.azs)
     iam-instance-profile-id = "${local.name}-${local.node_group_name}"

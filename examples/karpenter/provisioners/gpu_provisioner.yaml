@@ -6,18 +6,18 @@ spec:
   requirements:
     - key: node.kubernetes.io/instance-type
       operator: In
-      values: ['p3.8xlarge', 'p3.16xlarge']
+      values: ['g4dn.xlarge']
   taints:
     - key: nvidia.com/gpu
-      value: true
-      effect: “NoSchedule”
+      value: 'true'
+      effect: NoSchedule
   provider:
     instanceProfile: ${iam-instance-profile-id}
+    subnetSelector:
+       Name: "${eks-vpc_name}-private*"
+    securityGroupSelector:
+       karpenter.sh/discovery/${eks-cluster-id}: '${eks-cluster-id}'
   labels:
     type: karpenter
     provisioner: gpu
-  taints:
-    - key: gpu
-      value: 'true'
-      effect: NoSchedule
   ttlSecondsAfterEmpty: 60

@@ -17,7 +17,7 @@ locals {
       name       = local.name
       chart      = local.name
       repository = "oci://public.ecr.aws/karpenter"
-      version    = "v0.29.1"
+      version    = "v0.29.2"
       namespace  = local.name
       values = [
         <<-EOT

@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ubuntu-bash-job-with-requests-and-labels
+spec:
+  ttlSecondsAfterFinished: 0
+  template:
+    spec:
+      nodeSelector:
+        provisioner: "default-lt"
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["bash", "-c", "while true; do sleep 3600; done"]
+        resources:
+          requests:
+            cpu: "4"
+            memory: "5G"
+      restartPolicy: Never
+  backoffLimit: 0
+
